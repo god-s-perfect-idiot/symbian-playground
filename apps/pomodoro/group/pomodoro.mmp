@@ -1,0 +1,32 @@
+TARGET          pomodoro.exe
+TARGETTYPE      exe
+UID             0x100039CE 0xe73f6135
+
+CAPABILITY      NONE
+VENDORID        0
+
+SOURCEPATH      ../src
+SOURCE          main.cpp
+
+USERINCLUDE     ../src
+USERINCLUDE     ../data
+SYSTEMINCLUDE   \epoc32\include
+SYSTEMINCLUDE   \epoc32\include\mw
+SYSTEMINCLUDE   \epoc32\include\platform
+SYSTEMINCLUDE   \epoc32\include\platform\mw
+SYSTEMINCLUDE   \epoc32\include\app
+SYSTEMINCLUDE   \epoc32\include\stdapis
+
+LIBRARY         euser.lib efsrv.lib estor.lib
+LIBRARY         cone.lib eikcore.lib avkon.lib
+LIBRARY         gdi.lib apparc.lib eikcoctl.lib
+LIBRARY         bafl.lib egul.lib fbscli.lib bitgdi.lib
+
+START RESOURCE ../data/pomodoro.rss
+HEADER
+TARGETPATH      \resource\apps
+END
+
+START RESOURCE ../data/pomodoro_reg.rss
+TARGETPATH      \private\10003a3f\apps
+END

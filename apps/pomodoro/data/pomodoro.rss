@@ -1,0 +1,49 @@
+NAME POMO
+#include <avkon.rsg>
+#include <avkon.rh>
+#include <eikon.rh>
+#include <appinfo.rh>
+#include "pomodoro.hrh"
+
+RESOURCE RSS_SIGNATURE { }
+
+RESOURCE TBUF { buf = "Pomodoro Timer"; }
+
+RESOURCE EIK_APP_INFO
+{
+    menubar = r_pomo_menubar;
+    cba = r_pomo_cba;
+}
+
+RESOURCE CBA r_pomo_cba
+{
+    buttons =
+    {
+        CBA_BUTTON { id = ECmdStartStop; txt = "Start"; },
+        CBA_BUTTON { id = EAknSoftkeyOptions; txt = "Options"; }
+    };
+}
+
+RESOURCE MENU_BAR r_pomo_menubar
+{
+    titles =
+    {
+        MENU_TITLE { menu_pane = r_pomo_menu; }
+    };
+}
+
+RESOURCE MENU_PANE r_pomo_menu
+{
+    items =
+    {
+        MENU_ITEM { command = ECmdStartStop; txt = "Start / Stop"; },
+        MENU_ITEM { command = ECmdPlusMin; txt = "+1 minute"; },
+        MENU_ITEM { command = ECmdMinusMin; txt = "-1 minute"; },
+        MENU_ITEM { command = ECmdSet5; txt = "Set 5 min"; },
+        MENU_ITEM { command = ECmdSet15; txt = "Set 15 min"; },
+        MENU_ITEM { command = ECmdSet25; txt = "Set 25 min"; },
+        MENU_ITEM { command = ECmdSet45; txt = "Set 45 min"; },
+        MENU_ITEM { command = ECmdReset; txt = "Reset"; },
+        MENU_ITEM { command = EAknSoftkeyExit; txt = "Exit"; }
+    };
+}

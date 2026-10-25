@@ -1,0 +1,8 @@
+; Pomodoro Timer
+&EN
+#{"Pomodoro Timer"},(0xe73f6135),1,0,0,TYPE=SA
+%{"SymDev"}
+:"Pomodoro Timer"
+"epoc32\release\gcce\urel\pomodoro.exe"-"!:\sys\bin\pomodoro.exe"
+"epoc32\data\z\resource\apps\pomodoro.rsc"-"!:\resource\apps\pomodoro.rsc"
+"epoc32\data\z\private\10003a3f\apps\pomodoro_reg.rsc"-"!:\private\10003a3f\import\apps\pomodoro_reg.rsc"

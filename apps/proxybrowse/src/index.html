@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <title>ProxyBrowse</title>
+  <style>
+    html, body {
+      margin: 0; padding: 0; width: 100%; height: 100%;
+      overflow: hidden; background: #0a0a0a; color: #f2f2f2;
+      font-family: sans-serif;
+    }
+    /* ---- Launcher (WRT, no network capability — installs on Belle) ---- */
+    #launch {
+      display: none; padding: 16px; box-sizing: border-box; height: 100%;
+    }
+    #launch h1 { font-size: 20px; margin: 0 0 8px; }
+    #launch p { font-size: 13px; line-height: 1.4; opacity: 0.9; margin: 0 0 12px; }
+    #launch label { display: block; font-size: 12px; margin-bottom: 4px; }
+    #launch input {
+      width: 100%; box-sizing: border-box; height: 32px; margin-bottom: 12px;
+      border: 1px solid #444; border-radius: 3px; background: #1a1a1a; color: #eee;
+      font-size: 14px; padding: 0 8px;
+    }
+    #launch a, #launch button {
+      display: inline-block; height: 34px; line-height: 34px; padding: 0 14px;
+      border: 0; border-radius: 4px; background: #3d7eff; color: #fff;
+      font-size: 15px; text-decoration: none; margin-right: 8px;
+    }
+    #launch .hint { font-size: 11px; opacity: 0.65; margin-top: 16px; }
+    /* ---- Live client (served from Mac /phone — has network) ---- */
+    #chrome {
+      display: none; height: 36px;
+      -webkit-box-orient: horizontal; -webkit-box-align: center;
+      align-items: center; background: #1a1a1a; border-bottom: 1px solid #333;
+      padding: 0 4px; box-sizing: border-box;
+    }
+    #chrome.on { display: -webkit-box; display: box; display: flex; }
+    #chrome button {
+      height: 28px; min-width: 32px; margin: 0 2px; border: 0; border-radius: 3px;
+      background: #2c2c2c; color: #eee; font-size: 14px; padding: 0 8px;
+    }
+    #chrome button:active { background: #3d7eff; }
+    #url {
+      -webkit-box-flex: 1; box-flex: 1; flex: 1;
+      height: 26px; margin: 0 4px; border: 1px solid #444; border-radius: 3px;
+      background: #111; color: #eee; font-size: 13px; padding: 0 6px;
+    }
+    #stage {
+      display: none; position: absolute; left: 0; right: 0; top: 36px; bottom: 0;
+      background: #000; overflow: hidden;
+    }
+    #stage.on { display: block; }
+    #frame {
+      display: block; width: 100%; height: 100%;
+      object-fit: contain; background: #000;
+      -webkit-touch-callout: none;
+    }
+    #status {
+      position: absolute; left: 6px; bottom: 4px; font-size: 11px;
+      color: #9ad; background: rgba(0,0,0,0.55); padding: 2px 6px; border-radius: 3px;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="launch">
+    <h1>ProxyBrowse</h1>
+    <p>This widget cannot use the network (so it installs on Belle). Open the live client in the Nokia Browser instead — Mac must be running <code>./sym proxybrowse</code> on the same Wi‑Fi.</p>
+    <label for="host">Mac host (then tap Open)</label>
+    <input id="host" type="text" value="http://192.168.1.1:8765"/>
+    <a id="openBtn" href="http://192.168.1.1:8765/phone">Open in Browser</a>
+    <button type="button" id="btnSave" style="background:#333">Save</button>
+    <p class="hint">Disconnect USB Mass Storage before installing .wgz files. If install still fails, skip the widget and type the /phone URL in Web Browser.</p>
+  </div>
+
+  <div id="chrome">
+    <button type="button" id="btnBack" title="Back">◀</button>
+    <button type="button" id="btnFwd" title="Forward">▶</button>
+    <input id="url" type="text" value="https://example.com" autocomplete="off"/>
+    <button type="button" id="btnGo">Go</button>
+  </div>
+  <div id="stage">
+    <img id="frame" alt="remote page" width="640" height="360"/>
+    <div id="status">connecting…</div>
+  </div>
+
+  <script>
+    var VIEW_W = 640;
+    var VIEW_H = 360;
+    var POLL_MS = 350;
+    var hostBase = "";
+    var pollTimer = null;
+    var dragging = false;
+    var dragLastY = 0;
+    var navBusy = false;
+
+    var elLaunch = document.getElementById("launch");
+    var elChrome = document.getElementById("chrome");
+    var elStage = document.getElementById("stage");
+    var elFrame = document.getElementById("frame");
+    var elUrl = document.getElementById("url");
+    var elHost = document.getElementById("host");
+    var elStatus = document.getElementById("status");
+    var elOpen = document.getElementById("openBtn");
+
+    function setStatus(t) { elStatus.textContent = t || ""; }
+
+    function syncOpenHref() {
+      var base = (elHost.value || "").replace(/\/$/, "");
+      elOpen.href = base + "/phone";
+    }
+
+    function saveHost() {
+      try {
+        if (window.localStorage) localStorage.setItem("pb_host", elHost.value || "");
+      } catch (e) {}
+      syncOpenHref();
+    }
+
+    function loadHost() {
+      try {
+        if (window.localStorage) {
+          var v = localStorage.getItem("pb_host");
+          if (v) elHost.value = v;
+        }
+      } catch (e) {}
+      syncOpenHref();
+    }
+
+    function xhr(method, path, body, cb) {
+      var req = new XMLHttpRequest();
+      req.open(method, hostBase + path, true);
+      req.timeout = 8000;
+      if (body) req.setRequestHeader("Content-Type", "application/json");
+      req.onreadystatechange = function () {
+        if (req.readyState !== 4) return;
+        if (req.status >= 200 && req.status < 300) {
+          var data = null;
+          try { data = req.responseText ? JSON.parse(req.responseText) : {}; } catch (e) { data = {}; }
+          if (cb) cb(null, data);
+        } else {
+          if (cb) cb(new Error("HTTP " + req.status), null);
+        }
+      };
+      req.onerror = function () { if (cb) cb(new Error("network"), null); };
+      req.ontimeout = function () { if (cb) cb(new Error("timeout"), null); };
+      req.send(body ? JSON.stringify(body) : null);
+    }
+
+    function refreshMeta() {
+      xhr("GET", "/meta", null, function (err, meta) {
+        if (err || !meta) { setStatus("host unreachable"); return; }
+        if (meta.url) elUrl.value = meta.url;
+        setStatus((meta.w || VIEW_W) + "×" + (meta.h || VIEW_H) + "  #" + meta.seq);
+      });
+    }
+
+    function pullFrame() {
+      elFrame.src = hostBase + "/frame.jpg?t=" + (new Date().getTime());
+      refreshMeta();
+    }
+
+    function startPoll() {
+      if (pollTimer) clearInterval(pollTimer);
+      pullFrame();
+      pollTimer = setInterval(pullFrame, POLL_MS);
+    }
+
+    function mapPoint(ev, target) {
+      var img = target || elFrame;
+      var cx, cy;
+      if (ev.touches && ev.touches.length) {
+        cx = ev.touches[0].clientX; cy = ev.touches[0].clientY;
+      } else if (typeof ev.clientX === "number") {
+        cx = ev.clientX; cy = ev.clientY;
+      } else {
+        cx = ev.pageX; cy = ev.pageY;
+      }
+      var left = 0, top = 0, dw = img.offsetWidth || VIEW_W, dh = img.offsetHeight || VIEW_H;
+      var node = img;
+      while (node) {
+        left += node.offsetLeft || 0;
+        top += node.offsetTop || 0;
+        node = node.offsetParent;
+      }
+      var scale = Math.min(dw / VIEW_W, dh / VIEW_H);
+      var rw = VIEW_W * scale, rh = VIEW_H * scale;
+      var ox = left + (dw - rw) / 2, oy = top + (dh - rh) / 2;
+      var x = (cx - ox) / scale, y = (cy - oy) / scale;
+      if (x < 0 || y < 0 || x >= VIEW_W || y >= VIEW_H) return null;
+      return { x: Math.floor(x), y: Math.floor(y) };
+    }
+
+    function sendClick(pt) {
+      if (!pt) return;
+      setStatus("tap " + pt.x + "," + pt.y);
+      xhr("POST", "/click", { x: pt.x, y: pt.y }, function (err) {
+        if (err) setStatus("click failed");
+        else setTimeout(pullFrame, 80);
+      });
+    }
+
+    function sendScroll(dy) {
+      if (!dy) return;
+      xhr("POST", "/scroll", { dx: 0, dy: dy }, function () { setTimeout(pullFrame, 60); });
+    }
+
+    function goUrl() {
+      if (navBusy) return;
+      navBusy = true;
+      setStatus("loading…");
+      xhr("POST", "/nav", { url: elUrl.value }, function (err, meta) {
+        navBusy = false;
+        if (err) { setStatus("nav failed"); return; }
+        if (meta && meta.url) elUrl.value = meta.url;
+        pullFrame();
+      });
+    }
+
+    function onPointerDown(ev) {
+      if (ev.preventDefault) ev.preventDefault();
+      dragging = true;
+      if (ev.touches && ev.touches.length) dragLastY = ev.touches[0].clientY;
+      else dragLastY = ev.clientY;
+      elFrame._down = mapPoint(ev, elFrame);
+      elFrame._moved = 0;
+    }
+    function onPointerMove(ev) {
+      if (!dragging) return;
+      if (ev.preventDefault) ev.preventDefault();
+      var y = (ev.touches && ev.touches.length) ? ev.touches[0].clientY : ev.clientY;
+      var dy = dragLastY - y;
+      dragLastY = y;
+      elFrame._moved += dy < 0 ? -dy : dy;
+      if ((dy < 0 ? -dy : dy) > 2) sendScroll(Math.floor(dy * (VIEW_H / (elFrame.offsetHeight || VIEW_H))));
+    }
+    function onPointerUp(ev) {
+      if (!dragging) return;
+      dragging = false;
+      if (ev.preventDefault) ev.preventDefault();
+      if (elFrame._moved < 10) sendClick(elFrame._down || mapPoint(ev, elFrame));
+      elFrame._down = null;
+    }
+
+    elFrame.onclick = function (ev) {
+      if (ev.preventDefault) ev.preventDefault();
+      sendClick(mapPoint(ev, elFrame));
+    };
+    if (elFrame.addEventListener) {
+      elFrame.addEventListener("touchstart", onPointerDown, false);
+      elFrame.addEventListener("touchmove", onPointerMove, false);
+      elFrame.addEventListener("touchend", onPointerUp, false);
+      elFrame.addEventListener("mousedown", onPointerDown, false);
+      elFrame.addEventListener("mousemove", onPointerMove, false);
+      elFrame.addEventListener("mouseup", onPointerUp, false);
+    }
+
+    document.getElementById("btnGo").onclick = goUrl;
+    document.getElementById("btnBack").onclick = function () {
+      xhr("POST", "/back", {}, function () { pullFrame(); });
+    };
+    document.getElementById("btnFwd").onclick = function () {
+      xhr("POST", "/forward", {}, function () { pullFrame(); });
+    };
+    document.getElementById("btnSave").onclick = function () { saveHost(); };
+    elHost.onchange = syncOpenHref;
+    elHost.onkeyup = syncOpenHref;
+    elUrl.onkeydown = function (ev) {
+      var k = ev.keyCode || ev.which;
+      if (k === 13) goUrl();
+    };
+
+    var hosted = (location.protocol === "http:" || location.protocol === "https:");
+    if (hosted) {
+      hostBase = location.protocol + "//" + location.host;
+      elLaunch.style.display = "none";
+      elChrome.className = "on";
+      elStage.className = "on";
+      setStatus("hosted " + hostBase);
+      startPoll();
+    } else {
+      elLaunch.style.display = "block";
+      loadHost();
+    }
+  </script>
+</body>
+</html>

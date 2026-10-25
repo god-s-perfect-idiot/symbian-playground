@@ -1,0 +1,4 @@
+enum THelloCommands
+{
+    EHelloDummy = 0x1000
+};

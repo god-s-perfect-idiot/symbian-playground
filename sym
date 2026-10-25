@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+# Symbian E7 harness entrypoint — always uses repo venv.
+set -euo pipefail
+ROOT="$(cd "$(dirname "$0")" && pwd)"
+PY="$ROOT/.venv/bin/python"
+if [[ ! -x "$PY" ]]; then
+  echo "bootstrapping .venv…" >&2
+  HOST_PY="$(command -v python3 || true)"
+  for cand in /usr/local/bin/python3 /opt/homebrew/bin/python3 /usr/bin/python3; do
+    [[ -x "$cand" ]] && HOST_PY="$cand" && break
+  done
+  if [[ -z "${HOST_PY}" ]]; then
+    echo "python3 not found — install Python 3" >&2
+    exit 1
+  fi
+  "$HOST_PY" -m venv "$ROOT/.venv"
+  if [[ -f "$ROOT/requirements.txt" ]]; then
+    "$ROOT/.venv/bin/pip" install -q -r "$ROOT/requirements.txt"
+  else
+    "$ROOT/.venv/bin/pip" install -q pyusb
+  fi
+fi
+export PYTHONPATH="$ROOT/harness${PYTHONPATH:+:$PYTHONPATH}"
+# Bare `./sym` → help (agent-friendly)
+if [[ $# -eq 0 ]]; then
+  set -- help
+fi
+exec "$PY" -m symlib.cli "$@"

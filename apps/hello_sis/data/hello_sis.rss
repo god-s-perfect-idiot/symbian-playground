@@ -1,0 +1,32 @@
+NAME HELO
+#include <avkon.rsg>
+#include <avkon.rh>
+#include <eikon.rh>
+#include <appinfo.rh>
+#include "hello_sis.hrh"
+
+RESOURCE RSS_SIGNATURE { }
+
+RESOURCE TBUF { buf = "Hello SIS"; }
+
+RESOURCE EIK_APP_INFO
+{
+    menubar = r_hello_menubar;
+    cba = R_AVKON_SOFTKEYS_OPTIONS_EXIT;
+}
+
+RESOURCE MENU_BAR r_hello_menubar
+{
+    titles =
+    {
+        MENU_TITLE { menu_pane = r_hello_menu; }
+    };
+}
+
+RESOURCE MENU_PANE r_hello_menu
+{
+    items =
+    {
+        MENU_ITEM { command = EAknSoftkeyExit; txt = "Exit"; }
+    };
+}

@@ -1,0 +1,11 @@
+enum TPomodoroCommands
+{
+    ECmdStartStop = 0x1000,
+    ECmdPlusMin,
+    ECmdMinusMin,
+    ECmdSet5,
+    ECmdSet15,
+    ECmdSet25,
+    ECmdSet45,
+    ECmdReset
+};

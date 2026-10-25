@@ -1,0 +1,8 @@
+; Hello SIS
+&EN
+#{"Hello SIS"},(0xea9dceac),1,0,0,TYPE=SA
+%{"SymDev"}
+:"Hello SIS"
+"epoc32\release\gcce\urel\hello_sis.exe"-"!:\sys\bin\hello_sis.exe"
+"epoc32\data\z\resource\apps\hello_sis.rsc"-"!:\resource\apps\hello_sis.rsc"
+"epoc32\data\z\private\10003a3f\apps\hello_sis_reg.rsc"-"!:\private\10003a3f\import\apps\hello_sis_reg.rsc"

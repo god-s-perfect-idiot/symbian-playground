@@ -1,0 +1,17 @@
+.venv/
+out/
+__pycache__/
+*.pyc
+.DS_Store
+phone-mount/
+boot.bin
+*.sis
+*.sisx
+!apps/**/*
+sdk/vendor/
+!sdk/vendor/.gitkeep
+*.egg-info/
+.Python
+.env
+.env.*
+!.env.example

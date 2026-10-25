@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# Start the macOS Proxy Browse host (E7 640×360 Chromium + JPEG API).
+set -euo pipefail
+ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
+cd "$ROOT"
+export PLAYWRIGHT_BROWSERS_PATH="${PLAYWRIGHT_BROWSERS_PATH:-$HOME/Library/Caches/ms-playwright}"
+if [[ ! -x .venv/bin/python ]]; then
+  echo "missing .venv — run ./sym once to bootstrap" >&2
+  exit 1
+fi
+if ! .venv/bin/python -c "import playwright, PIL" 2>/dev/null; then
+  echo "installing host deps…"
+  .venv/bin/pip install -r apps/proxybrowse/host/requirements.txt
+  .venv/bin/playwright install chromium
+fi
+if [[ ! -d "$PLAYWRIGHT_BROWSERS_PATH/chromium-1248" ]] && [[ ! -d "$PLAYWRIGHT_BROWSERS_PATH"/chromium-* ]]; then
+  echo "installing Chromium for Playwright…"
+  .venv/bin/playwright install chromium
+fi
+exec .venv/bin/python apps/proxybrowse/host/server.py "$@"

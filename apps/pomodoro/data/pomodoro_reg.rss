@@ -1,0 +1,10 @@
+#include <appinfo.rh>
+
+UID2 KUidAppRegistrationResourceFile
+UID3 0xe73f6135
+
+RESOURCE APP_REGISTRATION_INFO
+{
+    app_file = "pomodoro";
+    localisable_resource_file = "\\resource\\apps\\pomodoro";
+}

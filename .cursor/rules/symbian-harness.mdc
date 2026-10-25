@@ -1,0 +1,28 @@
+---
+description: Symbian E7 harness — always use ./sym; device + SDK conventions
+alwaysApply: true
+---
+
+# Symbian E7 harness
+
+Read and follow **AGENTS.md** at the repo root. Drive all device and build work through `./sym`.
+
+## Non-negotiables
+
+1. Start with `./sym doctor` when touching the phone or native SDK.
+2. Phone I/O only via `./sym ls|push|pull|deploy|test` — never shell `cp`/`ls` on `/Volumes/NO NAME` (macOS TCC).
+3. App args are bare names (`hello`), never `apps/hello`.
+4. Prefer WRT (`.wgz`) for fast UI loops; native SIS only when C++/SIS is required.
+5. Do **not** rebuild `symbian-sdk:s3` unless `./sym sdk status` shows the image missing or Dockerfile/vendor intentionally changed. Rebuilds are slow and disk-hungry; runtime is Colima **x86_64**.
+6. After deploy: tell the user to open **File Mgr → Installs/devdrop** on the unlocked E7.
+
+## Quick commands
+
+```bash
+./sym help
+./sym doctor
+./sym new <name> [--type wrt|native|payload]
+./sym deploy <name>
+./sym iterate <name>
+./sym sdk status
+```

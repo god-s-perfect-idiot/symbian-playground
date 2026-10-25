@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <title>Hello E7</title>
+  <style>
+    body { margin: 0; font-family: sans-serif; background: #0b1020; color: #e8eefc; }
+    main { padding: 24px; }
+    h1 { font-size: 22px; margin: 0 0 8px; }
+    p { opacity: 0.85; }
+    button {
+      margin-top: 16px; padding: 10px 16px; border: 0; border-radius: 6px;
+      background: #3d7eff; color: white; font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Hello E7</h1>
+    <p>Running on device via sym harness.</p>
+    <button onclick="document.getElementById('n').textContent = (+document.getElementById('n').textContent) + 1">
+      Tap: <span id="n">0</span>
+    </button>
+  </main>
+</body>
+</html>
