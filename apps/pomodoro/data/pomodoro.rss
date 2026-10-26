@@ -7,7 +7,7 @@ NAME POMO
 
 RESOURCE RSS_SIGNATURE { }
 
-RESOURCE TBUF { buf = "Pomodoro Timer"; }
+RESOURCE TBUF { buf = "Pomodoro"; }
 
 RESOURCE EIK_APP_INFO
 {
@@ -19,7 +19,7 @@ RESOURCE CBA r_pomo_cba
 {
     buttons =
     {
-        CBA_BUTTON { id = ECmdStartStop; txt = "Start"; },
+        CBA_BUTTON { id = EAknSoftkeyOk; txt = "Start"; },
         CBA_BUTTON { id = EAknSoftkeyOptions; txt = "Options"; }
     };
 }
@@ -37,13 +37,26 @@ RESOURCE MENU_PANE r_pomo_menu
     items =
     {
         MENU_ITEM { command = ECmdStartStop; txt = "Start / Stop"; },
-        MENU_ITEM { command = ECmdPlusMin; txt = "+1 minute"; },
-        MENU_ITEM { command = ECmdMinusMin; txt = "-1 minute"; },
+        MENU_ITEM { command = ECmdMinMinus; txt = "Minute -"; },
+        MENU_ITEM { command = ECmdMinPlus; txt = "Minute +"; },
+        MENU_ITEM { command = ECmdSecMinus; txt = "Second -"; },
+        MENU_ITEM { command = ECmdSecPlus; txt = "Second +"; },
         MENU_ITEM { command = ECmdSet5; txt = "Set 5 min"; },
         MENU_ITEM { command = ECmdSet15; txt = "Set 15 min"; },
         MENU_ITEM { command = ECmdSet25; txt = "Set 25 min"; },
         MENU_ITEM { command = ECmdSet45; txt = "Set 45 min"; },
         MENU_ITEM { command = ECmdReset; txt = "Reset"; },
         MENU_ITEM { command = EAknSoftkeyExit; txt = "Exit"; }
+    };
+}
+
+RESOURCE LOCALISABLE_APP_INFO r_pomo_localisable_app_info
+{
+    short_caption = "Pomodoro";
+    caption_and_icon = CAPTION_AND_ICON_INFO
+    {
+        caption = "Pomodoro Timer";
+        number_of_icons = 1;
+        icon_file = "\\resource\\apps\\pomodoro_aif.mif";
     };
 }

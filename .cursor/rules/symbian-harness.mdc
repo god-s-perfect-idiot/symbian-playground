@@ -14,7 +14,8 @@ Read and follow **AGENTS.md** at the repo root. Drive all device and build work 
 3. App args are bare names (`hello`), never `apps/hello`.
 4. Prefer WRT (`.wgz`) for fast UI loops; native SIS only when C++/SIS is required.
 5. Do **not** rebuild `symbian-sdk:s3` unless `./sym sdk status` shows the image missing or Dockerfile/vendor intentionally changed. Rebuilds are slow and disk-hungry; runtime is Colima **x86_64**.
-6. After deploy: tell the user to open **File Mgr → Installs/devdrop** on the unlocked E7.
+6. After deploy: `./sym unmount` so the phone can use storage, then tell the user to open **File Mgr → Installs/devdrop**. Remount later with `./sym remount` (no unplug).
+7. **UI mockup gate:** before implementing or redesigning app UI, write `apps/<name>/mockup.html` (E7 **640×360**), show it for approval, and wait for explicit OK. Do not build/deploy UI until approved.
 
 ## Quick commands
 
@@ -23,6 +24,8 @@ Read and follow **AGENTS.md** at the repo root. Drive all device and build work 
 ./sym doctor
 ./sym new <name> [--type wrt|native|payload]
 ./sym deploy <name>
+./sym unmount          # free phone storage (cable stays in)
+./sym remount          # mass storage again for Mac I/O
 ./sym iterate <name>
 ./sym sdk status
 ```

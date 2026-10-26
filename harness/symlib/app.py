@@ -168,6 +168,33 @@ title: {title}
             encoding="utf-8",
         )
 
+    # UI mockup stub — agents must flesh this out and get approval before coding UI
+    (root / "mockup.html").write_text(
+        f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>{title} — UI mockup (E7)</title>
+  <style>
+    body {{ margin: 0; font-family: sans-serif; background: #111; color: #eee; }}
+    .note {{ padding: 16px; font-size: 13px; opacity: 0.8; max-width: 40rem; }}
+    .phone {{
+      width: min(100%, 640px); aspect-ratio: 640 / 360; margin: 0 16px 24px;
+      background: #1a1a1a; border: 1px solid #333; display: flex;
+      align-items: center; justify-content: center; font-size: 18px;
+    }}
+  </style>
+</head>
+<body>
+  <p class="note">Stub mockup for <strong>{title}</strong>. Replace with a real E7 640×360 UI preview and get approval before implementing (see AGENTS.md).</p>
+  <div class="phone">{title}</div>
+</body>
+</html>
+""",
+        encoding="utf-8",
+    )
+
     return load_app(name)
 
 

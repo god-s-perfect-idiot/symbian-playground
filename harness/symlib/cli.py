@@ -14,8 +14,10 @@ from .device import (
     phone_ls,
     phone_pull,
     phone_push,
+    remount_volume,
     status_dict,
     status_json,
+    unmount_volume,
     usb_reset,
     usb_status,
 )
@@ -33,7 +35,7 @@ Symbian E7 harness — use ./sym for everything (see AGENTS.md).
   ./sym deploy --artifact out/foo.sisx
   ./sym iterate <name>                 # watch → rebuild → deploy
   ./sym test [name]                    # smoke USB + push (+ optional build)
-  ./sym ls [path] | push | pull | reset-usb | ensure
+  ./sym ls [path] | push | pull | unmount | remount | reset-usb | ensure
   ./sym sdk status | setup | shell
   ./sym proxybrowse [--port 8765] [--url …] [--headless]
                    # macOS host: Chromium @ 640×360, JPEG frames + click API
@@ -41,6 +43,8 @@ Symbian E7 harness — use ./sym for everything (see AGENTS.md).
 App names are bare (hello), not apps/hello.
 Phone: unlocked, Mass storage. After deploy → File Mgr → Installs/devdrop.
 Native SIS needs Colima x86_64 image symbian-sdk:s3 (do not rebuild casually).
+
+UI: write apps/<name>/mockup.html (E7 640×360), get approval, then implement.
 """
 
 
@@ -72,7 +76,7 @@ def cmd_doctor(_: argparse.Namespace) -> None:
     print(f"usb: {'OK' if usb.present else 'MISSING'}  {usb.product}  {usb.serial}")
     if not usb.present:
         ok = False
-        print("hint: unlock phone, USB Mass storage, cable; then ./sym reset-usb")
+        print("hint: unlock phone, USB Mass storage, cable; then ./sym remount")
     vol = find_volume()
     if vol:
         print(
@@ -82,7 +86,7 @@ def cmd_doctor(_: argparse.Namespace) -> None:
     else:
         print("volume: MISSING  (mass storage not mounted)")
         ok = False
-        print("hint: ./sym reset-usb && ./sym ensure")
+        print("hint: ./sym remount   # or ./sym unmount then remount after phone use")
     print(f"apps dir: {APPS}  ({len(list_apps())} apps)")
     print(f"out dir:  {OUT}")
     print(f"drop:     {PHONE_DEVDROP}")
@@ -137,6 +141,17 @@ def cmd_reset_usb(_: argparse.Namespace) -> None:
     usb_reset()
     print("usb reset issued; waiting for volume…")
     vol = ensure_volume(timeout=25, reset_if_missing=False)
+    print(f"mounted: {vol.name} ({vol.mount_point}) media={vol.media_name}")
+
+
+def cmd_unmount(_: argparse.Namespace) -> None:
+    vol = unmount_volume()
+    print(f"ejected: {vol.name} ({vol.mount_point}) — phone can use storage; cable stays in")
+
+
+def cmd_remount(_: argparse.Namespace) -> None:
+    print("remounting mass storage (USB reset)…")
+    vol = remount_volume()
     print(f"mounted: {vol.name} ({vol.mount_point}) media={vol.media_name}")
 
 
@@ -318,6 +333,14 @@ def build_parser() -> argparse.ArgumentParser:
     sp.add_parser("status", help="JSON status of USB + volume").set_defaults(func=cmd_status)
     sp.add_parser("doctor", help="Check toolchain + device").set_defaults(func=cmd_doctor)
     sp.add_parser("reset-usb", help="USB reset (remount mass storage)").set_defaults(func=cmd_reset_usb)
+    sp.add_parser(
+        "unmount",
+        help="Eject phone volume so E7 can use storage (no unplug)",
+    ).set_defaults(func=cmd_unmount)
+    sp.add_parser(
+        "remount",
+        help="USB reset + remount mass storage (no unplug)",
+    ).set_defaults(func=cmd_remount)
     sp.add_parser("ensure", help="Ensure phone volume is mounted").set_defaults(func=cmd_ensure)
 
     p_ls = sp.add_parser("ls", help="List phone folder via Finder")

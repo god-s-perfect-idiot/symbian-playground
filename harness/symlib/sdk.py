@@ -261,6 +261,17 @@ else
   exit 2
 fi
 
+# Symbian^3 menu icons: mifconv SVG → resource/apps/<name>_aif.mif
+# (gnupoc gnumakefile icons_scalable.mk is flaky on Linux; do it here)
+ICON_SVG=$(ls gfx/*.svg 2>/dev/null | head -1 || true)
+if [[ -n "$ICON_SVG" ]]; then
+  ICON_DIR="${{EPOCROOT}}epoc32/data/z/resource/apps"
+  mkdir -p "$ICON_DIR"
+  ICON_MIF="$ICON_DIR/{app_name}_aif.mif"
+  echo "+ mifconv $ICON_MIF from $ICON_SVG"
+  mifconv "$ICON_MIF" /c32 "$ICON_SVG"
+fi
+
 PKG=$(ls pkg/*.pkg 2>/dev/null | head -1 || true)
 if [[ -z "$PKG" ]]; then
   echo "missing pkg/*.pkg" >&2

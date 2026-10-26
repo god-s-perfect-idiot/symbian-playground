@@ -222,8 +222,53 @@ def ensure_volume(timeout: float = 30, reset_if_missing: bool = True) -> Volume:
             return vol
     raise DeviceError(
         "Phone mass storage not mounted. Unlock phone, choose Mass storage, "
-        "then run: ./sym reset-usb"
+        "then run: ./sym remount"
     )
+
+
+def unmount_volume() -> Volume:
+    """Eject phone mass storage so the E7 can use its own disk (cable stays in)."""
+    vol = find_volume()
+    if not vol:
+        raise DeviceError("Phone volume not mounted (already free for phone use)")
+    target = vol.disk or vol.mount_point
+    r = _run(["diskutil", "eject", target], check=False)
+    if r.returncode != 0:
+        # Fallback: unmount volume only (keeps disk attached)
+        r2 = _run(["diskutil", "unmount", "force", vol.mount_point], check=False)
+        if r2.returncode != 0:
+            err = (r.stderr or r2.stderr or r.stdout or r2.stdout or "").strip()
+            raise DeviceError(f"eject failed: {err}")
+    # Confirm gone (brief wait for DiskArbitration)
+    deadline = time.time() + 8
+    while time.time() < deadline:
+        if find_volume() is None:
+            return vol
+        time.sleep(0.3)
+    if find_volume() is not None:
+        raise DeviceError(f"volume still mounted at {vol.mount_point}")
+    return vol
+
+
+def remount_volume(timeout: float = 25) -> Volume:
+    """USB reset + remount mass storage without unplugging."""
+    usb = usb_status()
+    if not usb.present:
+        raise DeviceError(
+            "Nokia E7-00 not on USB. Keep cable plugged; unlock phone; Mass storage"
+        )
+    try:
+        usb_reset()
+    except DeviceError:
+        # Still try to mount whatever disk is already presented
+        pass
+    time.sleep(2.5)
+    _try_mount_phone_disk()
+    vol = find_volume(wait=timeout)
+    if vol:
+        return vol
+    # Second chance: ensure_volume may reset again
+    return ensure_volume(timeout=timeout, reset_if_missing=True)
 
 
 def phone_ls(path: str = "") -> list[str]:

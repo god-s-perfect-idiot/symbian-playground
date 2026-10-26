@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Pomodoro — UI mockup (E7)</title>
+  <style>
+    :root {
+      --bg: #161412;
+      --panel: #221e1c;
+      --ink: #f0ebe6;
+      --muted: #9a8f86;
+      --tile: #2a2624;
+      --tile-edge: #1a1715;
+      --seam: rgba(0,0,0,0.45);
+      --accent: #c44a3a;
+      --done: #d4a84a;
+      --btn: #2a2624;
+      --btn-edge: #3a342f;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; padding: 24px;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      background: #0c0b0a; color: var(--ink);
+    }
+    h1 { font-size: 18px; font-weight: 500; margin: 0 0 6px; }
+    .note { color: var(--muted); font-size: 13px; margin: 0 0 20px; max-width: 48rem; line-height: 1.4; }
+    .phone {
+      width: min(100%, 640px); aspect-ratio: 640 / 360; min-height: 200px;
+      background: var(--bg); border: 1px solid #000;
+      display: flex; flex-direction: column; overflow: hidden;
+    }
+    .status {
+      display: flex; align-items: center; gap: 8px; padding: 6px 10px;
+      background: var(--panel); border-bottom: 1px solid #0a0908;
+      font-size: 13px; font-weight: 500;
+    }
+    .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); }
+    .body { flex: 1; display: flex; align-items: center; justify-content: center; padding: 8px; min-height: 0; }
+    .center { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .row { display: flex; align-items: center; gap: 6px; }
+    .pair { display: flex; align-items: center; gap: 6px; }
+    .tiles { display: flex; gap: 4px; }
+    .adj {
+      width: 40px; height: 40px; border: 1px solid var(--btn-edge); background: var(--btn);
+      color: var(--ink); font-size: 22px; border-radius: 3px; cursor: pointer;
+    }
+    .tile {
+      position: relative; width: 70px; height: 96px; border-radius: 4px;
+      background: linear-gradient(180deg, #35302c 0%, var(--tile) 48%, var(--tile-edge) 52%, #221e1c 100%);
+      box-shadow: 0 1px 0 rgba(255,255,255,0.06) inset, 0 2px 6px rgba(0,0,0,0.35);
+      display: flex; align-items: center; justify-content: center; overflow: hidden;
+    }
+    .tile::after {
+      content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 1px;
+      background: var(--seam); box-shadow: 0 1px 0 rgba(255,255,255,0.04);
+    }
+    .digit {
+      position: relative; z-index: 1; font-family: "Courier New", Courier, monospace;
+      font-size: 52px; font-weight: 700; color: var(--ink); line-height: 1;
+    }
+    .colon { font-family: "Courier New", Courier, monospace; font-size: 40px; font-weight: 700; color: var(--muted); padding: 0 4px; }
+    .bar { width: 280px; height: 3px; background: #2e2926; border-radius: 2px; overflow: hidden; }
+    .bar > i { display: block; height: 100%; width: 100%; background: var(--accent); }
+    .phase { font-size: 12px; color: var(--muted); }
+    .phase strong { color: var(--ink); font-weight: 500; }
+    .cba {
+      display: grid; grid-template-columns: 1fr 1fr; background: #0a0908; border-top: 1px solid #2a2624;
+    }
+    .cba span { padding: 10px 12px; font-size: 14px; font-weight: 500; }
+    .cba span:first-child { text-align: left; }
+    .cba span:last-child { text-align: right; }
+    .hint { font-size: 11px; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <h1>Pomodoro Timer — E7 mockup</h1>
+  <p class="note">
+    Larger flip digits. −/+ beside minutes and beside seconds (idle only). Softkeys Start / Options.
+  </p>
+  <div class="phone">
+    <div class="status"><span class="dot"></span><span>Pomodoro</span></div>
+    <div class="body">
+      <div class="center">
+        <div class="row">
+          <div class="pair">
+            <button type="button" class="adj" aria-label="Minus one minute">−</button>
+            <div class="tiles">
+              <div class="tile"><span class="digit">2</span></div>
+              <div class="tile"><span class="digit">5</span></div>
+            </div>
+            <button type="button" class="adj" aria-label="Plus one minute">+</button>
+          </div>
+          <span class="colon">:</span>
+          <div class="pair">
+            <button type="button" class="adj" aria-label="Minus one second">−</button>
+            <div class="tiles">
+              <div class="tile"><span class="digit">0</span></div>
+              <div class="tile"><span class="digit">0</span></div>
+            </div>
+            <button type="button" class="adj" aria-label="Plus one second">+</button>
+          </div>
+        </div>
+        <div class="bar" aria-hidden="true"><i></i></div>
+        <div class="phase"><strong>Ready</strong> · set min / sec</div>
+        <div class="hint">min −/+ &nbsp;·&nbsp; sec −/+</div>
+      </div>
+    </div>
+    <div class="cba"><span>Start</span><span>Options</span></div>
+  </div>
+</body>
+</html>

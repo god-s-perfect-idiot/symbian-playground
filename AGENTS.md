@@ -13,12 +13,22 @@ Always drive work through `./sym`. Do not invent alternate toolchains or copy fi
 
 If doctor fails: fix USB/volume/SDK using hints below, then continue. Do not ask the user to re-explain the harness.
 
+## UI mockup gate (required)
+
+Before implementing or redesigning an app UI (WRT or native), agents **must**:
+
+1. Write / update `apps/<name>/mockup.html` — phone-sized preview (E7 is **640×360** landscape). Keep it simple; no purple “AI landing page” chrome.
+2. Show that mockup to the user for **approval** (open the file or render it in chat).
+3. Only after explicit approval: implement, build, and `./sym deploy <name>`.
+
+`./sym new` scaffolds a stub `mockup.html`. Iterate the mockup first; treat code as secondary until the UX is signed off.
+
 ## Golden loop
 
 | Goal | Commands |
 |------|----------|
-| Fast HTML/JS app | `./sym new <name>` → edit `apps/<name>/src/` → `./sym deploy <name>` or `./sym iterate <name>` |
-| Native C++ SIS | `./sym new <name> --type native` → edit sources → `./sym build <name>` → `./sym deploy <name>` |
+| Fast HTML/JS app | `./sym new <name>` → **mockup approval** → edit `apps/<name>/src/` → `./sym deploy <name>` or `./sym iterate <name>` |
+| Native C++ SIS | `./sym new <name> --type native` → **mockup approval** → edit sources → `./sym build <name>` → `./sym deploy <name>` |
 | Proxy web browser | Mac: `./sym proxybrowse`. Phone (preferred): Nokia Browser → `http://&lt;mac-lan-ip&gt;:8765/phone`. Optional WRT: `./sym deploy proxybrowse` (if install says Feature not supported, use Browser path) |
 | Push existing file | `./sym deploy --artifact out/<file>` |
 | Smoke device I/O | `./sym test` or `./sym test <name>` |
@@ -45,8 +55,9 @@ Each app: `apps/<name>/app.yaml` + type-specific tree. Prefer editing an existin
    - `./sym ls [path]`
    - `./sym push <file> [--dest Installs/devdrop]`
    - `./sym pull <remote> [--dest out/pull]`
-4. Flaky USB → `./sym reset-usb` then `./sym ensure`.
-5. FAT rejects leading-dot filenames (e.g. `.probe`). Harness already avoids them.
+4. Flaky USB → `./sym remount` (or `./sym reset-usb` then `./sym ensure`).
+5. After deploy, free the phone without unplugging: `./sym unmount` → use File Mgr on E7 → `./sym remount` when you need Mac I/O again.
+6. FAT rejects leading-dot filenames (e.g. `.probe`). Harness already avoids them.
 
 ## Native SDK (Docker)
 
@@ -92,14 +103,15 @@ Vendor bits live under `sdk/vendor/` (gitignored; fetched by `./sym sdk fetch`).
 | `harness/symlib/sdk.py` | Colima/Docker/native build |
 | `harness/symlib/native_template.py` | native scaffold |
 | `sdk/Dockerfile` + `install-in-container.sh` | image build |
-| `apps/` | user apps |
+| `apps/` | user apps (`apps/<name>/mockup.html` = UI approval preview) |
 | `out/` | build artifacts (gitignored) |
 
 ## Failure cheat-sheet
 
 | Symptom | Fix |
 |---------|-----|
-| `volume: MISSING` | Unlock phone, Mass storage, `./sym reset-usb` |
+| `volume: MISSING` | Unlock phone, Mass storage, `./sym remount` |
+| Need phone UI / install after deploy | `./sym unmount` (cable stays in), then later `./sym remount` |
 | Finder / `-8082` / TCC | Use `./sym push` only; no leading-dot names |
 | `docker=NO` / `colima=NO` | `colima start --arch x86_64` (or `./sym sdk setup`) |
 | `image MISSING` | `./sym sdk setup` (watch disk: need tens of GB free) |
@@ -114,6 +126,7 @@ Vendor bits live under `sdk/vendor/` (gitignored; fetched by `./sym sdk fetch`).
 **Do**
 
 - Run `./sym doctor` before claiming device/SDK issues
+- Ship `apps/<name>/mockup.html` and get UI approval before coding the real app
 - Prefer WRT for UI experiments; native only when SIS/C++ is required
 - Keep changes inside `apps/<name>/` unless fixing the harness itself
 - Deploy with `./sym deploy <name>`; tell user to open File Mgr on phone
@@ -124,6 +137,7 @@ Vendor bits live under `sdk/vendor/` (gitignored; fetched by `./sym sdk fetch`).
 - Rebuild SDK image casually
 - Pass `apps/foo` as the app argument (bare `foo`)
 - Commit `sdk/vendor/`, `.venv/`, or huge binaries
+- Implement UI (WRT or SIS) without an approved mockup
 - Use purple/generic “AI landing page” patterns for WRT UI — keep widgets simple and phone-sized
 
 ## Minimal verify
